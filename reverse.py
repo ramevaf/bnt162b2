@@ -43,15 +43,17 @@ def optimize_virus_sequence(sequence: str) -> str:
     problem.optimize()
     return problem.sequence
 
-def print_sequence_side_by_side(seqVaccine: str, seqOptimized: str):
+def print_sequence_side_by_side(seqVirus: str, seqVaccine: str, seqOptimized: str):
     f = open("side-by-side_optimized.csv",'w')
 
+    codonsVirus = compose_sequence_series(seqVirus, as_codons=True)
     codonsVaccine = compose_sequence_series(seqVaccine, as_codons=True)
     codonsOptimized = compose_sequence_series(seqOptimized, as_codons=True)
+    codonsVirus.rename("Virus")
     codonsVaccine.rename("Vaccine")
     codonsOptimized.rename("Optimized")
     
-    out = pd.concat([codonsVaccine, codonsOptimized], axis=1)
+    out = pd.concat([codonsVirus, codonsVaccine, codonsOptimized], axis=1)
     out.to_csv(f, sep=";")
     f.close()
 
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     seqVirus, seqVaccine = load_sequence()
 
     seqOptimized = optimize_virus_sequence(sequence=seqVirus)
-    print_sequence_side_by_side(seqVaccine, seqOptimized)
+    print_sequence_side_by_side(seqVirus, seqVaccine, seqOptimized)
     
 
     score = compute_match(seqVaccine, seqOptimized)
