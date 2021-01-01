@@ -23,6 +23,11 @@ def compute_match(one, two):
             num_mismatches = num_mismatches + 1
     return (1 - float(num_mismatches) / float(len(one)))
 
+def compose_sequence_series(sequence: str, *, as_codons=None) -> pd.Series:
+    chunk_len = 3 if as_codons else 1
+    chunks = (sequence[0+i:chunk_len+i] for i in range(0, len(sequence), chunk_len))
+    return pd.Series(chunks)
+
 def optimize_virus_sequence(sequence: str) -> str:
     problem = DnaOptimizationProblem(
         sequence=sequence,
@@ -38,12 +43,24 @@ def optimize_virus_sequence(sequence: str) -> str:
     problem.optimize()
     return problem.sequence
 
+def print_sequence_side_by_side(seqVaccine: str, seqOptimized: str):
+    f = open("side-by-side_optimized.csv",'w')
 
+    codonsVaccine = compose_sequence_series(seqVaccine, as_codons=True)
+    codonsOptimized = compose_sequence_series(seqOptimized, as_codons=True)
+    codonsVaccine.rename("Vaccine")
+    codonsOptimized.rename("Optimized")
+    
+    out = pd.concat([codonsVaccine, codonsOptimized], axis=1)
+    out.to_csv(f, sep=";")
+    f.close()
 
 if __name__ == '__main__':
     seqVirus, seqVaccine = load_sequence()
 
-    optimized_sequence = optimize_virus_sequence(sequence=seqVirus)
+    seqOptimized = optimize_virus_sequence(sequence=seqVirus)
+    print_sequence_side_by_side(seqVaccine, seqOptimized)
     
-    score = compute_match(seqVaccine, optimized_sequence)
+
+    score = compute_match(seqVaccine, seqOptimized)
     print(f"{score:.2%}")
